@@ -130,6 +130,23 @@ export function UploadForm() {
       }
 
       const { imageId } = await completeRes.json();
+      setProgress(90);
+
+      // Step 4: Start P2P seeding (non-blocking)
+      try {
+        const { seedFile } = await import("@/lib/torrent/client");
+        const { magnetURI } = await seedFile(file, file.name);
+        // Save magnet URI to DB
+        await fetch(`/api/images/${imageId}/magnet`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ magnetUri: magnetURI }),
+        });
+      } catch {
+        // P2P seeding is optional - don't fail the upload
+        console.warn("P2P seeding failed, image still uploaded via server");
+      }
+
       setProgress(100);
       setStep("done");
 
@@ -197,7 +214,11 @@ export function UploadForm() {
           </div>
         )}
         <p className="font-medium">
-          {step === "done" ? "Upload complete!" : "Processing..."}
+          {step === "done"
+            ? "Upload complete!"
+            : progress >= 90
+              ? "Starting P2P seed..."
+              : "Processing..."}
         </p>
         <div className="mt-4 h-2 w-64 overflow-hidden rounded-full bg-muted">
           <div

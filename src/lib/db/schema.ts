@@ -145,6 +145,7 @@ export const images = pgTable(
 
     sha256Hash: varchar("sha256_hash", { length: 64 }).notNull(),
     pHash: varchar("p_hash", { length: 64 }),
+    magnetUri: text("magnet_uri"),
 
     isModerated: boolean("is_moderated").default(false),
     moderationOk: boolean("moderation_ok").default(true),

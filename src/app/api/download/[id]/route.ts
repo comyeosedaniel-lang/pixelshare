@@ -19,5 +19,9 @@ export async function GET(
   // Increment download count
   incrementDownloadCount(id);
 
-  return NextResponse.json({ downloadUrl });
+  return NextResponse.json({
+    downloadUrl,
+    magnetUri: image.magnetUri || null,
+    fileName: image.fileName,
+  });
 }

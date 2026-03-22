@@ -17,6 +17,7 @@ const nextConfig: NextConfig = {
       },
     ],
   },
+  serverExternalPackages: ["webtorrent", "node-datachannel"],
 };
 
 export default nextConfig;

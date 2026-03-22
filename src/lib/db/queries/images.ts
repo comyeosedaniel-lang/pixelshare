@@ -108,6 +108,7 @@ export async function getImageById(id: string) {
       userId: images.userId,
       userName: users.name,
       userImage: users.image,
+      magnetUri: images.magnetUri,
     })
     .from(images)
     .leftJoin(users, eq(images.userId, users.id))
