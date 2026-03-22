@@ -9,7 +9,7 @@ export function LatestImages() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    fetch("/api/images?limit=20&sort=newest")
+    fetch("/api/images?limit=30&sort=random")
       .then((res) => res.json())
       .then((data) => setImages(data.images || []))
       .catch(() => {})

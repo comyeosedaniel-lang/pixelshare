@@ -18,7 +18,7 @@ export async function getImages({
   category?: string;
   query?: string;
   userId?: string;
-  sort?: "newest" | "popular" | "downloads";
+  sort?: "newest" | "popular" | "downloads" | "random";
 }) {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const conditions: SQL<any>[] = [
@@ -44,8 +44,11 @@ export async function getImages({
     );
   }
 
-  const orderBy =
-    sort === "popular"
+  const isRandom = sort === "random";
+
+  const orderBy = isRandom
+    ? [sql`RANDOM()`]
+    : sort === "popular"
       ? [desc(images.viewCount), desc(images.createdAt)]
       : sort === "downloads"
         ? [desc(images.downloadCount), desc(images.createdAt)]

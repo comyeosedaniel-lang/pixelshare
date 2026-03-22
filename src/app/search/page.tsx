@@ -98,6 +98,7 @@ function SearchContent() {
           <option value="newest">Newest</option>
           <option value="popular">Most Viewed</option>
           <option value="downloads">Most Downloaded</option>
+          <option value="random">Random</option>
         </select>
 
         {!loading && (

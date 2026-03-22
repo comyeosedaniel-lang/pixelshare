@@ -12,7 +12,8 @@ export async function GET(request: NextRequest) {
   const sort = (searchParams.get("sort") || "newest") as
     | "newest"
     | "popular"
-    | "downloads";
+    | "downloads"
+    | "random";
 
   const result = await getImages({
     offset,
