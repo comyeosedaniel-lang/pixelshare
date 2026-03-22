@@ -1,12 +1,13 @@
 import type { Metadata } from "next";
-import { Inter } from "next/font/google";
+import { Inter, Syne } from "next/font/google";
 import "./globals.css";
 import { Providers } from "@/components/layout/providers";
 import { Header } from "@/components/layout/header";
 import { Footer } from "@/components/layout/footer";
 import { APP_NAME, APP_DESCRIPTION } from "@/lib/utils/constants";
 
-const inter = Inter({ subsets: ["latin"] });
+const inter = Inter({ subsets: ["latin"], variable: "--font-inter" });
+const syne = Syne({ subsets: ["latin"], variable: "--font-syne" });
 
 const BASE_URL = process.env.NEXT_PUBLIC_APP_URL || "https://pixelshare.vercel.app";
 
@@ -66,7 +67,7 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en" suppressHydrationWarning>
-      <body className={inter.className}>
+      <body className={`${inter.variable} ${syne.variable} ${inter.className}`}>
         <Providers>
           <div className="flex min-h-screen flex-col">
             <Header />

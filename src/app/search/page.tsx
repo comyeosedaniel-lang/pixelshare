@@ -16,7 +16,8 @@ function SearchContent() {
   const [nextOffset, setNextOffset] = useState<number | null>(null);
   const [loading, setLoading] = useState(true);
   const [loadingMore, setLoadingMore] = useState(false);
-  const [category, setCategory] = useState("all");
+  const initialCategory = searchParams.get("category") || "all";
+  const [category, setCategory] = useState(initialCategory);
   const [sort, setSort] = useState("newest");
 
   const fetchImages = useCallback(
