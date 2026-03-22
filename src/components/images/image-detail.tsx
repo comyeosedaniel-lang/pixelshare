@@ -133,15 +133,30 @@ export function ImageDetail({ imageId }: { imageId: string }) {
     }
   };
 
+  const [downloading, setDownloading] = useState(false);
+
   const handleDownload = useCallback(async () => {
-    if (!image) return;
-    fetch(`/api/download/${image.id}`);
-    const link = document.createElement("a");
-    link.href = image.originalUrl;
-    link.download = image.fileName;
-    link.target = "_blank";
-    link.click();
-  }, [image]);
+    if (!image || downloading) return;
+    setDownloading(true);
+    try {
+      // Track download count
+      fetch(`/api/download/${image.id}`);
+      // Fetch the actual file as blob to force download (cross-origin URLs ignore download attr)
+      const res = await fetch(image.originalUrl);
+      const blob = await res.blob();
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = image.fileName;
+      link.click();
+      URL.revokeObjectURL(url);
+    } catch {
+      // Fallback: open in new tab
+      window.open(image.originalUrl, "_blank");
+    } finally {
+      setDownloading(false);
+    }
+  }, [image, downloading]);
 
   const handleShare = async () => {
     if (!image) return;
@@ -375,10 +390,15 @@ export function ImageDetail({ imageId }: { imageId: string }) {
               <div className="flex items-center gap-3">
                 <button
                   onClick={handleDownload}
-                  className="inline-flex items-center gap-2 rounded-lg bg-foreground px-5 py-2.5 text-sm font-medium text-background transition-opacity hover:opacity-90"
+                  disabled={downloading}
+                  className="inline-flex items-center gap-2 rounded-lg bg-foreground px-5 py-2.5 text-sm font-medium text-background transition-opacity hover:opacity-90 disabled:opacity-70"
                 >
-                  <Download className="h-4 w-4" />
-                  Download
+                  {downloading ? (
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                  ) : (
+                    <Download className="h-4 w-4" />
+                  )}
+                  {downloading ? "Downloading..." : "Download"}
                 </button>
                 <button
                   onClick={handleShare}
