@@ -62,7 +62,7 @@ export function UploadForm() {
   const [category, setCategory] = useState("other");
   const [prompt, setPrompt] = useState("");
   const [progress, setProgress] = useState(0);
-  const [legalAgreed, setLegalAgreed] = useState(false);
+  const [legalAgreed, setLegalAgreed] = useState(true);
 
   const [analyzing, setAnalyzing] = useState(false);
 
@@ -400,6 +400,23 @@ export function UploadForm() {
         </div>
       </div>
 
+      {/* Content Policy Warning */}
+      <div className="rounded-lg border border-destructive/30 bg-destructive/5 p-4">
+        <p className="mb-2 text-sm font-bold text-destructive">
+          Prohibited Content — Immediate Ban
+        </p>
+        <ul className="mb-3 space-y-1 text-xs text-muted-foreground">
+          <li>- Child sexual abuse material (CSAM) or any depiction of minors in sexual contexts</li>
+          <li>- Pornographic, sexually explicit, or obscene content</li>
+          <li>- Graphic violence, gore, or content promoting self-harm</li>
+          <li>- Hate speech, terrorism, or content inciting violence</li>
+          <li>- Real person deepfakes or non-consensual intimate imagery</li>
+        </ul>
+        <p className="text-xs font-semibold text-destructive">
+          Uploading prohibited content will result in permanent account termination and may be reported to law enforcement.
+        </p>
+      </div>
+
       {/* Legal Agreement */}
       <div className="rounded-lg border border-border bg-muted/30 p-4">
         <label className="flex cursor-pointer items-start gap-3">
@@ -410,9 +427,8 @@ export function UploadForm() {
             className="mt-0.5 h-4 w-4 shrink-0 rounded border-border"
           />
           <span className="text-xs text-muted-foreground leading-relaxed">
-            I confirm this is an AI-generated image, I have the rights to share it, it does not infringe
-            any copyright, and I agree to share it freely without copyright claims. I have read and agree
-            to the{" "}
+            I confirm this image is AI-generated, does not contain any prohibited content listed above,
+            does not infringe any copyright, and I agree to share it freely under the platform&apos;s{" "}
             <a href="/legal/terms" target="_blank" className="underline text-foreground">
               Terms of Service
             </a>.

@@ -68,7 +68,7 @@ export function BulkUploadForm() {
   const router = useRouter();
   const [files, setFiles] = useState<FileItem[]>([]);
   const [uploading, setUploading] = useState(false);
-  const [legalAgreed, setLegalAgreed] = useState(false);
+  const [legalAgreed, setLegalAgreed] = useState(true);
   const [progress, setProgress] = useState({ current: 0, total: 0 });
 
   const addFiles = useCallback((newFiles: FileList | File[]) => {
@@ -446,8 +446,24 @@ export function BulkUploadForm() {
         ))}
       </div>
 
-      {/* Legal + Upload */}
+      {/* Content Policy + Legal */}
       <div className="space-y-4 border-t border-border pt-6">
+        <div className="rounded-lg border border-destructive/30 bg-destructive/5 p-4">
+          <p className="mb-2 text-sm font-bold text-destructive">
+            Prohibited Content — Immediate Ban
+          </p>
+          <ul className="mb-3 space-y-1 text-xs text-muted-foreground">
+            <li>- Child sexual abuse material (CSAM) or any depiction of minors in sexual contexts</li>
+            <li>- Pornographic, sexually explicit, or obscene content</li>
+            <li>- Graphic violence, gore, or content promoting self-harm</li>
+            <li>- Hate speech, terrorism, or content inciting violence</li>
+            <li>- Real person deepfakes or non-consensual intimate imagery</li>
+          </ul>
+          <p className="text-xs font-semibold text-destructive">
+            Uploading prohibited content will result in permanent account termination and may be reported to law enforcement.
+          </p>
+        </div>
+
         <div className="rounded-lg border border-border bg-muted/30 p-4">
           <label className="flex cursor-pointer items-start gap-3">
             <input
@@ -457,17 +473,15 @@ export function BulkUploadForm() {
               className="mt-0.5 h-4 w-4 shrink-0 rounded border-border"
             />
             <span className="text-xs text-muted-foreground leading-relaxed">
-              I confirm all images are AI-generated, I have the rights to share
-              them, they do not infringe any copyright, and I agree to share them
-              freely without copyright claims. I have read and agree to the{" "}
+              I confirm all images are AI-generated, do not contain any prohibited content listed above,
+              do not infringe any copyright, and I agree to share them freely under the platform&apos;s{" "}
               <a
                 href="/legal/terms"
                 target="_blank"
                 className="text-foreground underline"
               >
                 Terms of Service
-              </a>
-              .
+              </a>.
             </span>
           </label>
         </div>
