@@ -11,6 +11,13 @@ import {
   ShieldCheck,
   ArrowUp,
   Sparkles,
+  Youtube,
+  Instagram,
+  Twitter,
+  Globe,
+  Download,
+  ImageIcon,
+  Users,
 } from "lucide-react";
 import { CategoryImages } from "@/components/images/category-images";
 import { CATEGORIES } from "@/lib/utils/constants";
@@ -196,6 +203,214 @@ export default function HomePage() {
               </div>
             );
           })}
+        </div>
+      </section>
+
+      {/* ── For Creators ── */}
+      <section className="border-t border-border bg-muted/30">
+        <div className="mx-auto max-w-[1200px] px-6 py-24">
+          <div className="mb-4 text-xs font-semibold uppercase tracking-[0.1em] text-highlight">
+            For Creators
+          </div>
+          <h2 className="mb-4 text-[clamp(28px,4vw,48px)] font-extrabold leading-[1.1]" style={{ fontFamily: "var(--font-syne)" }}>
+            Your images work for you.<br />
+            <span className="text-highlight">Even while you sleep.</span>
+          </h2>
+          <p className="mb-16 max-w-lg text-base leading-relaxed text-muted-foreground">
+            Every image you share on Pixelshare becomes a gateway to your audience.
+            Link your YouTube, Instagram, X, or website &mdash; and let your downloads do the promoting.
+          </p>
+
+          {/* Creator showcase cards */}
+          <div className="mb-16 grid gap-6 md:grid-cols-2">
+            {/* Creator 1 */}
+            <div className="group overflow-hidden rounded-2xl border border-border bg-background transition-all hover:-translate-y-1 hover:border-border/80 hover:shadow-lg">
+              <div className="grid grid-cols-[1fr_1fr] grid-rows-[120px_120px] gap-[2px]">
+                <div className="row-span-2 bg-gradient-to-br from-indigo-200 to-purple-200 dark:from-indigo-950 dark:to-purple-950" />
+                <div className="bg-gradient-to-br from-blue-200 to-cyan-200 dark:from-blue-950 dark:to-cyan-950" />
+                <div className="bg-gradient-to-br from-orange-200 to-red-200 dark:from-orange-950 dark:to-red-950" />
+              </div>
+              <div className="p-5">
+                <div className="mb-3 flex items-center gap-3">
+                  <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-highlight to-orange-400 text-sm font-bold text-white" style={{ fontFamily: "var(--font-syne)" }}>
+                    A
+                  </div>
+                  <div>
+                    <div className="text-sm font-bold" style={{ fontFamily: "var(--font-syne)" }}>ArtificialVisions</div>
+                    <div className="text-xs text-muted-foreground">@artificialvisions</div>
+                  </div>
+                </div>
+                <div className="mb-3 flex flex-wrap gap-2">
+                  <span className="inline-flex items-center gap-1.5 rounded-full border border-border px-3 py-1 text-xs text-muted-foreground transition-colors hover:border-red-400 hover:text-red-500">
+                    <Youtube className="h-3 w-3" /> YouTube
+                  </span>
+                  <span className="inline-flex items-center gap-1.5 rounded-full border border-border px-3 py-1 text-xs text-muted-foreground transition-colors hover:border-pink-400 hover:text-pink-500">
+                    <Instagram className="h-3 w-3" /> Instagram
+                  </span>
+                  <span className="inline-flex items-center gap-1.5 rounded-full border border-border px-3 py-1 text-xs text-muted-foreground transition-colors hover:border-highlight hover:text-highlight">
+                    <Globe className="h-3 w-3" /> Portfolio
+                  </span>
+                </div>
+                <div className="flex gap-6 border-t border-border pt-3">
+                  <div className="text-center">
+                    <span className="block text-lg font-bold text-highlight" style={{ fontFamily: "var(--font-syne)" }}>2.4K</span>
+                    <span className="text-[10px] text-muted-foreground">Downloads</span>
+                  </div>
+                  <div className="text-center">
+                    <span className="block text-lg font-bold" style={{ fontFamily: "var(--font-syne)" }}>184</span>
+                    <span className="text-[10px] text-muted-foreground">Images</span>
+                  </div>
+                  <div className="text-center">
+                    <span className="block text-lg font-bold" style={{ fontFamily: "var(--font-syne)" }}>891</span>
+                    <span className="text-[10px] text-muted-foreground">Followers</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Creator 2 */}
+            <div className="group overflow-hidden rounded-2xl border border-border bg-background transition-all hover:-translate-y-1 hover:border-border/80 hover:shadow-lg">
+              <div className="grid grid-cols-[1fr_1fr] grid-rows-[120px_120px] gap-[2px]">
+                <div className="row-span-2 bg-gradient-to-br from-pink-200 to-rose-200 dark:from-pink-950 dark:to-rose-950" />
+                <div className="bg-gradient-to-br from-violet-200 to-fuchsia-200 dark:from-violet-950 dark:to-fuchsia-950" />
+                <div className="bg-gradient-to-br from-amber-200 to-yellow-200 dark:from-amber-950 dark:to-yellow-950" />
+              </div>
+              <div className="p-5">
+                <div className="mb-3 flex items-center gap-3">
+                  <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-orange-400 to-pink-500 text-sm font-bold text-white" style={{ fontFamily: "var(--font-syne)" }}>
+                    N
+                  </div>
+                  <div>
+                    <div className="text-sm font-bold" style={{ fontFamily: "var(--font-syne)" }}>NeonDreamer</div>
+                    <div className="text-xs text-muted-foreground">@neondreamer</div>
+                  </div>
+                </div>
+                <div className="mb-3 flex flex-wrap gap-2">
+                  <span className="inline-flex items-center gap-1.5 rounded-full border border-border px-3 py-1 text-xs text-muted-foreground transition-colors hover:border-sky-400 hover:text-sky-500">
+                    <Twitter className="h-3 w-3" /> X
+                  </span>
+                  <span className="inline-flex items-center gap-1.5 rounded-full border border-border px-3 py-1 text-xs text-muted-foreground transition-colors hover:border-pink-400 hover:text-pink-500">
+                    <Instagram className="h-3 w-3" /> Instagram
+                  </span>
+                </div>
+                <div className="flex gap-6 border-t border-border pt-3">
+                  <div className="text-center">
+                    <span className="block text-lg font-bold text-highlight" style={{ fontFamily: "var(--font-syne)" }}>8.1K</span>
+                    <span className="text-[10px] text-muted-foreground">Downloads</span>
+                  </div>
+                  <div className="text-center">
+                    <span className="block text-lg font-bold" style={{ fontFamily: "var(--font-syne)" }}>342</span>
+                    <span className="text-[10px] text-muted-foreground">Images</span>
+                  </div>
+                  <div className="text-center">
+                    <span className="block text-lg font-bold" style={{ fontFamily: "var(--font-syne)" }}>2.3K</span>
+                    <span className="text-[10px] text-muted-foreground">Followers</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Promo banner */}
+          <div className="relative mb-16 overflow-hidden rounded-2xl border border-border bg-background p-8 md:p-12">
+            <div className="absolute left-0 right-0 top-0 h-0.5 bg-gradient-to-r from-highlight via-orange-400 to-transparent" />
+            <div className="grid items-center gap-10 md:grid-cols-[1fr_auto]">
+              <div>
+                <h3 className="mb-4 text-[clamp(22px,3vw,32px)] font-extrabold leading-[1.2]" style={{ fontFamily: "var(--font-syne)" }}>
+                  Upload images.<br />
+                  <span className="text-highlight">Grow your audience.</span>
+                </h3>
+                <p className="mb-6 max-w-lg text-sm leading-relaxed text-muted-foreground">
+                  Pixelshare isn&apos;t just a gallery &mdash; it&apos;s a discovery engine for your creative work.
+                  Every download is a chance for someone to find your YouTube channel, follow your Instagram,
+                  or visit your portfolio.
+                </p>
+                <div className="mb-6 space-y-3">
+                  {[
+                    { icon: BarChart3, text: "See exactly how many times your images were downloaded" },
+                    { icon: Link2, text: "Your SNS links appear on every image you upload" },
+                    { icon: Award, text: "Earn badges and get featured as a top creator" },
+                    { icon: Globe, text: "Reach creators worldwide — no algorithm, no pay-to-play" },
+                  ].map(({ icon: Icon, text }) => (
+                    <div key={text} className="flex items-center gap-3 text-sm text-muted-foreground">
+                      <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-highlight/10">
+                        <Icon className="h-3.5 w-3.5 text-highlight" />
+                      </span>
+                      {text}
+                    </div>
+                  ))}
+                </div>
+                <Link
+                  href="/upload"
+                  className="inline-flex items-center gap-2 rounded-lg bg-highlight px-7 py-3.5 text-sm font-bold text-highlight-foreground transition-all hover:-translate-y-0.5 hover:shadow-lg hover:shadow-highlight/25"
+                >
+                  <Upload className="h-4 w-4" />
+                  Start Uploading
+                </Link>
+              </div>
+
+              {/* SNS bubbles */}
+              <div className="flex flex-row flex-wrap justify-center gap-3 md:flex-col">
+                {[
+                  { icon: Youtube, label: "YouTube Channel", cls: "hover:border-red-400 hover:text-red-500" },
+                  { icon: Instagram, label: "Instagram", cls: "hover:border-pink-400 hover:text-pink-500" },
+                  { icon: Twitter, label: "X / Twitter", cls: "hover:border-sky-400 hover:text-sky-500" },
+                  { icon: Globe, label: "Your Website", cls: "hover:border-highlight hover:text-highlight" },
+                ].map(({ icon: Icon, label, cls }) => (
+                  <div
+                    key={label}
+                    className={`flex items-center gap-2.5 rounded-full border border-border bg-muted/50 px-5 py-2.5 text-sm font-medium transition-all hover:scale-105 ${cls}`}
+                  >
+                    <Icon className="h-4 w-4" />
+                    {label}
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+
+          {/* Profile setup teaser */}
+          <div className="mx-auto max-w-lg overflow-hidden rounded-2xl border border-border bg-background p-8">
+            <h3 className="text-center text-lg font-bold" style={{ fontFamily: "var(--font-syne)" }}>
+              Set up your creator profile
+            </h3>
+            <p className="mb-6 mt-1 text-center text-xs text-muted-foreground">
+              Add your links once &mdash; they appear on every image you share
+            </p>
+
+            <div className="space-y-3">
+              <div>
+                <div className="mb-1 text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">Display Name</div>
+                <div className="rounded-lg border border-border bg-muted/50 px-4 py-2.5 text-sm text-muted-foreground">Your creator name</div>
+              </div>
+              <div>
+                <div className="mb-1 text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">Bio</div>
+                <div className="rounded-lg border border-border bg-muted/50 px-4 py-2.5 text-sm text-muted-foreground">AI artist &middot; prompt engineer</div>
+              </div>
+              <div className="grid grid-cols-2 gap-3">
+                {[
+                  { icon: Youtube, label: "YouTube", placeholder: "youtube.com/@you" },
+                  { icon: Instagram, label: "Instagram", placeholder: "instagram.com/you" },
+                  { icon: Twitter, label: "X / Twitter", placeholder: "x.com/you" },
+                  { icon: Globe, label: "Website", placeholder: "yoursite.com" },
+                ].map(({ icon: Icon, label, placeholder }) => (
+                  <div key={label}>
+                    <div className="mb-1 flex items-center gap-1 text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
+                      <Icon className="h-3 w-3" /> {label}
+                    </div>
+                    <div className="rounded-lg border border-border bg-muted/50 px-4 py-2.5 text-xs text-muted-foreground/60">{placeholder}</div>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            <Link
+              href="/upload"
+              className="mt-6 flex w-full items-center justify-center gap-2 rounded-lg bg-highlight px-4 py-3 text-sm font-bold text-highlight-foreground transition-all hover:opacity-90"
+            >
+              Save Profile & Start Uploading
+            </Link>
+          </div>
         </div>
       </section>
 
