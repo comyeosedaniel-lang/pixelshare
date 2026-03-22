@@ -10,6 +10,9 @@ export function Footer() {
             &copy; {new Date().getFullYear()} {APP_NAME}. AI images shared freely.
           </p>
           <nav className="flex gap-6 text-sm text-muted-foreground">
+            <Link href="/get-started" className="transition-colors hover:text-foreground">
+              Get Started
+            </Link>
             <Link href="/legal/terms" className="transition-colors hover:text-foreground">
               Terms
             </Link>

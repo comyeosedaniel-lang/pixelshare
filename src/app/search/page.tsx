@@ -13,19 +13,19 @@ function SearchContent() {
   const query = searchParams.get("q") || "";
 
   const [images, setImages] = useState<ImageCardData[]>([]);
-  const [nextCursor, setNextCursor] = useState<string | null>(null);
+  const [nextOffset, setNextOffset] = useState<number | null>(null);
   const [loading, setLoading] = useState(true);
   const [loadingMore, setLoadingMore] = useState(false);
   const [category, setCategory] = useState("all");
   const [sort, setSort] = useState("newest");
 
   const fetchImages = useCallback(
-    async (cursor?: string) => {
+    async (offset?: number) => {
       const params = new URLSearchParams();
       if (query) params.set("q", query);
       if (category !== "all") params.set("category", category);
       params.set("sort", sort);
-      if (cursor) params.set("cursor", cursor);
+      if (offset) params.set("offset", String(offset));
 
       const res = await fetch(`/api/images?${params}`);
       return res.json();
@@ -39,19 +39,19 @@ function SearchContent() {
     fetchImages()
       .then((data) => {
         setImages(data.images);
-        setNextCursor(data.nextCursor);
+        setNextOffset(data.nextOffset);
       })
       .finally(() => setLoading(false));
   }, [fetchImages]);
 
   const loadMore = useCallback(async () => {
-    if (!nextCursor || loadingMore) return;
+    if (nextOffset === null || loadingMore) return;
     setLoadingMore(true);
-    const data = await fetchImages(nextCursor);
+    const data = await fetchImages(nextOffset);
     setImages((prev) => [...prev, ...data.images]);
-    setNextCursor(data.nextCursor);
+    setNextOffset(data.nextOffset);
     setLoadingMore(false);
-  }, [nextCursor, loadingMore, fetchImages]);
+  }, [nextOffset, loadingMore, fetchImages]);
 
   return (
     <div className="mx-auto max-w-7xl px-4 py-8">
@@ -113,7 +113,7 @@ function SearchContent() {
         <>
           <MasonryGrid images={images} />
           <InfiniteScroll
-            hasMore={!!nextCursor}
+            hasMore={nextOffset !== null}
             isLoading={loadingMore}
             onLoadMore={loadMore}
           />

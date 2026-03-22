@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import Image from "next/image";
-import { Download, ArrowDown } from "lucide-react";
+import { ArrowDown } from "lucide-react";
 
 export interface ImageCardData {
   id: string;
@@ -23,18 +23,25 @@ interface ImageCardProps {
 
 export function ImageCard({ image }: ImageCardProps) {
   const aspectRatio = image.height / image.width;
+  const isAbsoluteUrl = image.thumbnailUrl.startsWith("http");
 
   return (
     <div className="group relative overflow-hidden rounded-lg bg-muted">
       <Link href={`/image/${image.id}`} className="block">
         <div style={{ paddingBottom: `${aspectRatio * 100}%` }} className="relative">
-          <Image
-            src={image.thumbnailUrl}
-            alt={image.title}
-            fill
-            sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
-            className="object-cover transition-transform duration-500 group-hover:scale-[1.03]"
-          />
+          {isAbsoluteUrl ? (
+            <Image
+              src={image.thumbnailUrl}
+              alt={image.title}
+              fill
+              sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
+              className="object-cover transition-transform duration-500 group-hover:scale-[1.03]"
+            />
+          ) : (
+            <div className="absolute inset-0 flex items-center justify-center bg-muted text-xs text-muted-foreground">
+              No preview
+            </div>
+          )}
         </div>
       </Link>
 
@@ -43,17 +50,13 @@ export function ImageCard({ image }: ImageCardProps) {
 
       {/* Top-right: Download button */}
       <div className="absolute right-3 top-3 opacity-0 transition-all duration-300 group-hover:opacity-100">
-        <button
-          onClick={(e) => {
-            e.preventDefault();
-            e.stopPropagation();
-            window.open(`/api/download/${image.id}`, "_blank");
-          }}
+        <Link
+          href={`/image/${image.id}`}
           className="flex h-8 w-8 items-center justify-center rounded-md bg-white/90 text-gray-700 shadow-sm backdrop-blur-sm transition-colors hover:bg-white"
           title="Download"
         >
           <ArrowDown className="h-4 w-4" />
-        </button>
+        </Link>
       </div>
 
       {/* Bottom: User info */}

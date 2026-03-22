@@ -7,14 +7,54 @@ import { CATEGORIES, MAX_FILE_SIZE_BYTES, ALLOWED_MIME_TYPES } from "@/lib/utils
 
 type UploadStep = "select" | "details" | "uploading" | "done";
 
+const MAX_DIMENSION = 2048;
+const COMPRESS_QUALITY = 0.85;
+
+function compressImage(file: File): Promise<{ blob: Blob; width: number; height: number }> {
+  return new Promise((resolve, reject) => {
+    const img = new window.Image();
+    img.onload = () => {
+      let { width, height } = img;
+
+      // Resize if exceeds max dimension
+      if (width > MAX_DIMENSION || height > MAX_DIMENSION) {
+        if (width > height) {
+          height = Math.round(height * (MAX_DIMENSION / width));
+          width = MAX_DIMENSION;
+        } else {
+          width = Math.round(width * (MAX_DIMENSION / height));
+          height = MAX_DIMENSION;
+        }
+      }
+
+      const canvas = document.createElement("canvas");
+      canvas.width = width;
+      canvas.height = height;
+      const ctx = canvas.getContext("2d")!;
+      ctx.drawImage(img, 0, 0, width, height);
+
+      canvas.toBlob(
+        (blob) => {
+          if (blob) resolve({ blob, width, height });
+          else reject(new Error("Compression failed"));
+        },
+        "image/webp",
+        COMPRESS_QUALITY
+      );
+    };
+    img.onerror = () => reject(new Error("Failed to load image"));
+    img.src = URL.createObjectURL(file);
+  });
+}
+
 export function UploadForm() {
   const router = useRouter();
   const [step, setStep] = useState<UploadStep>("select");
   const [file, setFile] = useState<File | null>(null);
   const [preview, setPreview] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [statusText, setStatusText] = useState("");
 
-  // Form fields
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [tagInput, setTagInput] = useState("");
@@ -22,8 +62,11 @@ export function UploadForm() {
   const [category, setCategory] = useState("other");
   const [prompt, setPrompt] = useState("");
   const [progress, setProgress] = useState(0);
+  const [legalAgreed, setLegalAgreed] = useState(false);
 
-  const handleFileSelect = useCallback((selectedFile: File) => {
+  const [analyzing, setAnalyzing] = useState(false);
+
+  const handleFileSelect = useCallback(async (selectedFile: File) => {
     setError(null);
 
     if (!ALLOWED_MIME_TYPES.includes(selectedFile.type as typeof ALLOWED_MIME_TYPES[number])) {
@@ -43,6 +86,27 @@ export function UploadForm() {
     reader.onload = (e) => setPreview(e.target?.result as string);
     reader.readAsDataURL(selectedFile);
     setStep("details");
+
+    // Auto-analyze with AI
+    setAnalyzing(true);
+    try {
+      const { blob } = await compressImage(selectedFile);
+      const formData = new FormData();
+      formData.append("file", new File([blob], "image.webp", { type: "image/webp" }));
+      const res = await fetch("/api/analyze", { method: "POST", body: formData });
+      if (res.ok) {
+        const data = await res.json();
+        if (data.title) setTitle(data.title);
+        if (data.description) setDescription(data.description);
+        if (data.tags?.length) setTags(data.tags);
+        if (data.category) setCategory(data.category);
+        if (data.prompt) setPrompt(data.prompt);
+      }
+    } catch {
+      // Analysis failed — keep filename-based title, user can edit manually
+    } finally {
+      setAnalyzing(false);
+    }
   }, []);
 
   const handleDrop = useCallback(
@@ -77,80 +141,92 @@ export function UploadForm() {
     setError(null);
 
     try {
-      // Step 1: Get presigned URL
-      const presignedRes = await fetch("/api/upload/presigned", {
+      // Step 1: Compress image
+      setStatusText("Compressing image...");
+      const { blob: compressed, width: cWidth, height: cHeight } = await compressImage(file);
+      setProgress(15);
+
+      // Step 2: Get Cloudinary signature from our server
+      setStatusText("Preparing upload...");
+      const sigRes = await fetch("/api/upload/presigned", { method: "POST" });
+      if (!sigRes.ok) throw new Error("Failed to get upload signature");
+      const { signature, timestamp, folder, cloudName, apiKey } = await sigRes.json();
+      setProgress(20);
+
+      // Step 3: Upload compressed image to Cloudinary
+      setStatusText("Uploading image...");
+      const uploadFile = new File([compressed], file.name.replace(/\.[^/.]+$/, ".webp"), {
+        type: "image/webp",
+      });
+      const formData = new FormData();
+      formData.append("file", uploadFile);
+      formData.append("signature", signature);
+      formData.append("timestamp", String(timestamp));
+      formData.append("folder", folder);
+      formData.append("api_key", apiKey);
+
+      const xhr = new XMLHttpRequest();
+      const cloudinaryResult = await new Promise<{
+        public_id: string;
+        secure_url: string;
+        width: number;
+        height: number;
+        bytes: number;
+        format: string;
+      }>((resolve, reject) => {
+        xhr.open("POST", `https://api.cloudinary.com/v1_1/${cloudName}/image/upload`);
+
+        xhr.upload.onprogress = (e) => {
+          if (e.lengthComputable) {
+            const pct = Math.round((e.loaded / e.total) * 55) + 25;
+            setProgress(pct);
+          }
+        };
+
+        xhr.onload = () => {
+          if (xhr.status >= 200 && xhr.status < 300) {
+            resolve(JSON.parse(xhr.responseText));
+          } else {
+            reject(new Error("Cloudinary upload failed"));
+          }
+        };
+
+        xhr.onerror = () => reject(new Error("Upload network error"));
+        xhr.send(formData);
+      });
+      setProgress(85);
+
+      // Step 4: Save metadata to our server
+      setStatusText("Saving...");
+      const res = await fetch("/api/upload/complete", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          fileName: file.name,
-          mimeType: file.type,
-          fileSize: file.size,
-        }),
-      });
-
-      if (!presignedRes.ok) {
-        const err = await presignedRes.json();
-        throw new Error(err.error || "Failed to get upload URL");
-      }
-
-      const { uploadUrl, key } = await presignedRes.json();
-      setProgress(30);
-
-      // Step 2: Upload directly to Supabase Storage via signed URL
-      const uploadRes = await fetch(uploadUrl, {
-        method: "PUT",
-        body: file,
-        headers: {
-          "Content-Type": file.type,
-        },
-      });
-
-      if (!uploadRes.ok) {
-        throw new Error("Failed to upload file");
-      }
-      setProgress(70);
-
-      // Step 3: Complete upload (server processes image)
-      const completeRes = await fetch("/api/upload/complete", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          key,
           title: title.trim(),
           description: description.trim() || undefined,
           tags,
           category,
           prompt: prompt.trim() || undefined,
+          cloudinaryPublicId: cloudinaryResult.public_id,
+          cloudinaryUrl: cloudinaryResult.secure_url,
+          fileName: file.name,
+          mimeType: "image/webp",
+          fileSize: cloudinaryResult.bytes,
+          width: cWidth,
+          height: cHeight,
         }),
       });
 
-      if (!completeRes.ok) {
-        const err = await completeRes.json();
-        throw new Error(err.error || "Failed to process upload");
+      if (!res.ok) {
+        const err = await res.json();
+        throw new Error(err.error || "Failed to save image");
       }
 
-      const { imageId } = await completeRes.json();
-      setProgress(90);
-
-      // Step 4: Start P2P seeding (non-blocking)
-      try {
-        const { seedFile } = await import("@/lib/torrent/client");
-        const { magnetURI } = await seedFile(file, file.name);
-        // Save magnet URI to DB
-        await fetch(`/api/images/${imageId}/magnet`, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ magnetUri: magnetURI }),
-        });
-      } catch {
-        // P2P seeding is optional - don't fail the upload
-        console.warn("P2P seeding failed, image still uploaded via server");
-      }
-
+      const { imageId } = await res.json();
       setProgress(100);
+      setStatusText("Done!");
       setStep("done");
 
-      // Redirect to image page after brief delay
       setTimeout(() => router.push(`/image/${imageId}`), 1000);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Upload failed");
@@ -170,9 +246,10 @@ export function UploadForm() {
     setStep("select");
     setError(null);
     setProgress(0);
+    setStatusText("");
+    setLegalAgreed(false);
   };
 
-  // Step: File selection
   if (step === "select") {
     return (
       <div
@@ -200,7 +277,6 @@ export function UploadForm() {
     );
   }
 
-  // Step: Uploading
   if (step === "uploading" || step === "done") {
     return (
       <div className="flex flex-col items-center justify-center py-20">
@@ -214,11 +290,7 @@ export function UploadForm() {
           </div>
         )}
         <p className="font-medium">
-          {step === "done"
-            ? "Upload complete!"
-            : progress >= 90
-              ? "Starting P2P seed..."
-              : "Processing..."}
+          {step === "done" ? "Upload complete!" : statusText}
         </p>
         <div className="mt-4 h-2 w-64 overflow-hidden rounded-full bg-muted">
           <div
@@ -231,17 +303,11 @@ export function UploadForm() {
     );
   }
 
-  // Step: Details form
   return (
     <div className="space-y-6">
-      {/* Preview */}
       <div className="relative overflow-hidden rounded-xl bg-muted">
         {preview && (
-          <img
-            src={preview}
-            alt="Preview"
-            className="max-h-72 w-full object-contain"
-          />
+          <img src={preview} alt="Preview" className="max-h-72 w-full object-contain" />
         )}
         <button
           onClick={resetForm}
@@ -257,7 +323,13 @@ export function UploadForm() {
         </div>
       )}
 
-      {/* Title */}
+      {analyzing && (
+        <div className="flex items-center gap-2 rounded-lg bg-muted/50 px-4 py-3 text-sm text-muted-foreground">
+          <Loader2 className="h-4 w-4 animate-spin" />
+          AI analyzing image...
+        </div>
+      )}
+
       <div>
         <label className="mb-1 block text-sm font-medium">Title *</label>
         <input
@@ -270,7 +342,6 @@ export function UploadForm() {
         />
       </div>
 
-      {/* Description */}
       <div>
         <label className="mb-1 block text-sm font-medium">Description</label>
         <textarea
@@ -283,7 +354,6 @@ export function UploadForm() {
         />
       </div>
 
-      {/* Category */}
       <div>
         <label className="mb-1 block text-sm font-medium">Category</label>
         <select
@@ -292,14 +362,11 @@ export function UploadForm() {
           className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm outline-none focus:border-foreground/20"
         >
           {CATEGORIES.map((cat) => (
-            <option key={cat.value} value={cat.value}>
-              {cat.label}
-            </option>
+            <option key={cat.value} value={cat.value}>{cat.label}</option>
           ))}
         </select>
       </div>
 
-      {/* Prompt */}
       <div>
         <label className="mb-1 block text-sm font-medium">AI Prompt</label>
         <textarea
@@ -312,19 +379,13 @@ export function UploadForm() {
         />
       </div>
 
-      {/* Tags */}
       <div>
         <label className="mb-1 block text-sm font-medium">Tags</label>
         <div className="flex flex-wrap gap-2 rounded-lg border border-border bg-background p-2">
           {tags.map((tag) => (
-            <span
-              key={tag}
-              className="flex items-center gap-1 rounded-md bg-muted px-2 py-1 text-xs"
-            >
+            <span key={tag} className="flex items-center gap-1 rounded-md bg-muted px-2 py-1 text-xs">
               {tag}
-              <button onClick={() => removeTag(tag)}>
-                <X className="h-3 w-3" />
-              </button>
+              <button onClick={() => removeTag(tag)}><X className="h-3 w-3" /></button>
             </span>
           ))}
           <input
@@ -339,10 +400,29 @@ export function UploadForm() {
         </div>
       </div>
 
-      {/* Submit */}
+      {/* Legal Agreement */}
+      <div className="rounded-lg border border-border bg-muted/30 p-4">
+        <label className="flex cursor-pointer items-start gap-3">
+          <input
+            type="checkbox"
+            checked={legalAgreed}
+            onChange={(e) => setLegalAgreed(e.target.checked)}
+            className="mt-0.5 h-4 w-4 shrink-0 rounded border-border"
+          />
+          <span className="text-xs text-muted-foreground leading-relaxed">
+            I confirm this is an AI-generated image, I have the rights to share it, it does not infringe
+            any copyright, and I agree to share it freely without copyright claims. I have read and agree
+            to the{" "}
+            <a href="/legal/terms" target="_blank" className="underline text-foreground">
+              Terms of Service
+            </a>.
+          </span>
+        </label>
+      </div>
+
       <button
         onClick={handleUpload}
-        disabled={!title.trim()}
+        disabled={!title.trim() || !legalAgreed || analyzing}
         className="w-full rounded-xl bg-foreground px-4 py-3 text-sm font-medium text-background transition-opacity hover:opacity-90 disabled:opacity-50"
       >
         Upload Image

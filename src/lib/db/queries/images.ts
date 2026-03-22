@@ -6,14 +6,14 @@ import { IMAGES_PER_PAGE } from "@/lib/utils/constants";
 export type ImageWithUser = Awaited<ReturnType<typeof getImages>>["images"][number];
 
 export async function getImages({
-  cursor,
+  offset = 0,
   limit = IMAGES_PER_PAGE,
   category,
   query,
   userId,
   sort = "newest",
 }: {
-  cursor?: string;
+  offset?: number;
   limit?: number;
   category?: string;
   query?: string;
@@ -44,16 +44,12 @@ export async function getImages({
     );
   }
 
-  if (cursor) {
-    conditions.push(sql`${images.createdAt} < ${new Date(cursor)}`);
-  }
-
   const orderBy =
     sort === "popular"
-      ? desc(images.viewCount)
+      ? [desc(images.viewCount), desc(images.createdAt)]
       : sort === "downloads"
-        ? desc(images.downloadCount)
-        : desc(images.createdAt);
+        ? [desc(images.downloadCount), desc(images.createdAt)]
+        : [desc(images.createdAt)];
 
   const results = await db
     .select({
@@ -75,16 +71,14 @@ export async function getImages({
     .from(images)
     .leftJoin(users, eq(images.userId, users.id))
     .where(and(...conditions))
-    .orderBy(orderBy)
+    .orderBy(...orderBy)
+    .offset(offset)
     .limit(limit + 1);
 
   const hasMore = results.length > limit;
   const items = hasMore ? results.slice(0, limit) : results;
-  const nextCursor = hasMore
-    ? items[items.length - 1].createdAt.toISOString()
-    : null;
 
-  return { images: items, nextCursor };
+  return { images: items, hasMore, nextOffset: hasMore ? offset + limit : null };
 }
 
 export async function getImageById(id: string) {
@@ -147,4 +141,50 @@ export async function softDeleteImage(id: string, userId: string) {
     .update(images)
     .set({ isDeleted: true })
     .where(and(eq(images.id, id), eq(images.userId, userId)));
+}
+
+type CategoryType = "character" | "landscape" | "abstract" | "architecture" | "portrait" | "sci_fi" | "fantasy" | "nature" | "concept_art" | "illustration" | "photo_realistic" | "other";
+
+export async function updateImage(
+  id: string,
+  userId: string,
+  data: {
+    title?: string;
+    description?: string | null;
+    prompt?: string | null;
+    category?: CategoryType;
+  }
+) {
+  await db
+    .update(images)
+    .set(data)
+    .where(and(eq(images.id, id), eq(images.userId, userId)));
+}
+
+export async function replaceImageTags(imageId: string, tagNames: string[]) {
+  // Delete existing tags
+  await db.delete(imageTags).where(eq(imageTags.imageId, imageId));
+
+  // Insert new tags
+  for (const tagName of tagNames) {
+    const normalized = tagName.toLowerCase().trim();
+    if (!normalized) continue;
+
+    let tag = await db.query.tags.findFirst({
+      where: eq(tags.name, normalized),
+    });
+
+    if (!tag) {
+      const [newTag] = await db
+        .insert(tags)
+        .values({ name: normalized })
+        .returning();
+      tag = newTag;
+    }
+
+    await db
+      .insert(imageTags)
+      .values({ imageId, tagId: tag.id })
+      .onConflictDoNothing();
+  }
 }

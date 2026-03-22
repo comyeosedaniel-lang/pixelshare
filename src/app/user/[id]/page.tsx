@@ -1,9 +1,12 @@
 "use client";
 
 import { useEffect, useState, useCallback, use } from "react";
+import { useSession } from "next-auth/react";
 import { MasonryGrid } from "@/components/images/masonry-grid";
 import { InfiniteScroll } from "@/components/images/infinite-scroll";
-import { Calendar, Download, Eye, ImageIcon } from "lucide-react";
+import { Calendar, Download, Eye, ImageIcon, Pencil } from "lucide-react";
+import { SnsLinks } from "@/components/profile/sns-links";
+import { ProfileEditModal } from "@/components/profile/profile-edit-modal";
 import type { ImageCardData } from "@/components/images/image-card";
 
 interface UserProfile {
@@ -11,6 +14,10 @@ interface UserProfile {
   name: string | null;
   image: string | null;
   bio: string | null;
+  youtubeUrl: string | null;
+  twitterUrl: string | null;
+  instagramUrl: string | null;
+  websiteUrl: string | null;
   createdAt: string;
   imageCount: number;
   totalDownloads: number;
@@ -23,33 +30,42 @@ export default function UserProfilePage({
   params: Promise<{ id: string }>;
 }) {
   const { id } = use(params);
+  const { data: session } = useSession();
   const [user, setUser] = useState<UserProfile | null>(null);
   const [images, setImages] = useState<ImageCardData[]>([]);
-  const [nextCursor, setNextCursor] = useState<string | null>(null);
+  const [nextOffset, setNextOffset] = useState<number | null>(null);
   const [loading, setLoading] = useState(true);
   const [loadingMore, setLoadingMore] = useState(false);
+  const [editModalOpen, setEditModalOpen] = useState(false);
+
+  const isOwner = session?.user?.id === id;
+
+  const fetchUser = useCallback(() => {
+    return fetch(`/api/user/${id}`)
+      .then((r) => r.json())
+      .then(setUser);
+  }, [id]);
 
   useEffect(() => {
     Promise.all([
-      fetch(`/api/user/${id}`).then((r) => r.json()),
+      fetchUser(),
       fetch(`/api/images?userId=${id}`).then((r) => r.json()),
-    ]).then(([userData, imagesData]) => {
-      setUser(userData);
+    ]).then(([, imagesData]) => {
       setImages(imagesData.images);
-      setNextCursor(imagesData.nextCursor);
+      setNextOffset(imagesData.nextOffset);
       setLoading(false);
     });
-  }, [id]);
+  }, [id, fetchUser]);
 
   const loadMore = useCallback(async () => {
-    if (!nextCursor || loadingMore) return;
+    if (nextOffset === null || loadingMore) return;
     setLoadingMore(true);
-    const res = await fetch(`/api/images?userId=${id}&cursor=${nextCursor}`);
+    const res = await fetch(`/api/images?userId=${id}&offset=${nextOffset}`);
     const data = await res.json();
     setImages((prev) => [...prev, ...data.images]);
-    setNextCursor(data.nextCursor);
+    setNextOffset(data.nextOffset);
     setLoadingMore(false);
-  }, [id, nextCursor, loadingMore]);
+  }, [id, nextOffset, loadingMore]);
 
   if (loading) {
     return (
@@ -92,8 +108,29 @@ export default function UserProfilePage({
           </div>
         )}
         <div className="mt-4 sm:mt-1">
-          <h1 className="text-2xl font-bold tracking-tight">{user.name || "Anonymous"}</h1>
+          <div className="flex items-center gap-2">
+            <h1 className="text-2xl font-bold tracking-tight">{user.name || "Anonymous"}</h1>
+            {isOwner && (
+              <button
+                onClick={() => setEditModalOpen(true)}
+                className="rounded-md p-1.5 text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
+                title="Edit Profile"
+              >
+                <Pencil className="h-4 w-4" />
+              </button>
+            )}
+          </div>
           {user.bio && <p className="mt-1 text-sm text-muted-foreground">{user.bio}</p>}
+
+          <div className="mt-2">
+            <SnsLinks
+              youtubeUrl={user.youtubeUrl}
+              twitterUrl={user.twitterUrl}
+              instagramUrl={user.instagramUrl}
+              websiteUrl={user.websiteUrl}
+            />
+          </div>
+
           <div className="mt-3 flex flex-wrap justify-center gap-4 text-sm text-muted-foreground sm:justify-start">
             <span className="flex items-center gap-1.5">
               <ImageIcon className="h-4 w-4" />
@@ -121,10 +158,22 @@ export default function UserProfilePage({
       {/* Gallery */}
       <MasonryGrid images={images} />
       <InfiniteScroll
-        hasMore={!!nextCursor}
+        hasMore={nextOffset !== null}
         isLoading={loadingMore}
         onLoadMore={loadMore}
       />
+
+      {/* Edit Modal */}
+      {editModalOpen && user && (
+        <ProfileEditModal
+          user={user}
+          onClose={() => setEditModalOpen(false)}
+          onSaved={() => {
+            setEditModalOpen(false);
+            fetchUser();
+          }}
+        />
+      )}
     </div>
   );
 }

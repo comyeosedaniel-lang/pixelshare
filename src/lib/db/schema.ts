@@ -66,6 +66,11 @@ export const users = pgTable("users", {
   emailVerified: timestamp("email_verified", { mode: "date" }),
   image: text("image"),
   bio: text("bio"),
+  youtubeUrl: varchar("youtube_url", { length: 500 }),
+  twitterUrl: varchar("twitter_url", { length: 500 }),
+  instagramUrl: varchar("instagram_url", { length: 500 }),
+  websiteUrl: varchar("website_url", { length: 500 }),
+  tosAcceptedAt: timestamp("tos_accepted_at", { mode: "date" }),
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
 });

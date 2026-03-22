@@ -1,29 +1,26 @@
-import { NextRequest, NextResponse } from "next/server";
-import { nanoid } from "nanoid";
+import { NextResponse } from "next/server";
 import { auth } from "@/lib/auth/auth";
-import { presignedUploadSchema } from "@/lib/validations/upload";
-import { getUploadPresignedUrl } from "@/lib/r2/presigned";
+import { cloudinary } from "@/lib/cloudinary/config";
 
-export async function POST(request: NextRequest) {
+export async function POST() {
   const session = await auth();
   if (!session?.user?.id) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  const body = await request.json();
-  const parsed = presignedUploadSchema.safeParse(body);
-  if (!parsed.success) {
-    return NextResponse.json(
-      { error: "Invalid input", details: parsed.error.flatten() },
-      { status: 400 }
-    );
-  }
+  const timestamp = Math.round(Date.now() / 1000);
+  const folder = `pixelshare/${session.user.id}`;
 
-  const { fileName, mimeType, fileSize } = parsed.data;
-  const ext = fileName.split(".").pop()?.toLowerCase() || "jpg";
-  const key = `originals/${session.user.id}/${nanoid()}.${ext}`;
+  const signature = cloudinary.utils.api_sign_request(
+    { timestamp, folder },
+    process.env.CLOUDINARY_API_SECRET!
+  );
 
-  const uploadUrl = await getUploadPresignedUrl(key, mimeType, fileSize);
-
-  return NextResponse.json({ uploadUrl, key });
+  return NextResponse.json({
+    signature,
+    timestamp,
+    folder,
+    cloudName: process.env.CLOUDINARY_CLOUD_NAME!,
+    apiKey: process.env.CLOUDINARY_API_KEY!,
+  });
 }
