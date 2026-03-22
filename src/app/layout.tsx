@@ -21,14 +21,13 @@ export const metadata: Metadata = {
   keywords: [
     "AI images",
     "AI art",
-    "Midjourney",
-    "Stable Diffusion",
-    "DALL-E",
     "AI generated",
     "free images",
     "image sharing",
     "AI artwork",
     "prompt sharing",
+    "creative commons",
+    "free stock images",
   ],
   openGraph: {
     type: "website",

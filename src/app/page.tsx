@@ -20,7 +20,7 @@ const FEATURES = [
     num: "01",
     icon: Palette,
     title: "Any AI Tool Welcome",
-    desc: "Midjourney, Stable Diffusion, DALL-E, Firefly \u2014 doesn\u2019t matter. If AI made it, it belongs here.",
+    desc: "No matter which tool you use. If AI made it, it belongs here. All styles, all formats welcome.",
   },
   {
     num: "02",
