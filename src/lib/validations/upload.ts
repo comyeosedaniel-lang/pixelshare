@@ -11,6 +11,9 @@ export const completeUploadSchema = z.object({
   category: z.string().default("other"),
   prompt: z.string().max(5000).optional(),
 
+  // AI moderation flag
+  nsfw: z.boolean().optional().default(false),
+
   // Cloudinary upload result
   cloudinaryPublicId: z.string().min(1),
   cloudinaryUrl: z.string().url(),

@@ -2,7 +2,7 @@
 
 import { useState, useCallback } from "react";
 import { useRouter } from "next/navigation";
-import { Upload, X, Loader2 } from "lucide-react";
+import { Upload, X, Loader2, Sparkles } from "lucide-react";
 import { CATEGORIES, MAX_FILE_SIZE_BYTES, ALLOWED_MIME_TYPES } from "@/lib/utils/constants";
 
 type UploadStep = "select" | "details" | "uploading" | "done";
@@ -86,11 +86,14 @@ export function UploadForm() {
     reader.onload = (e) => setPreview(e.target?.result as string);
     reader.readAsDataURL(selectedFile);
     setStep("details");
+  }, []);
 
-    // Auto-analyze with AI
+  const handleAnalyze = useCallback(async () => {
+    if (!file || analyzing) return;
     setAnalyzing(true);
+    setError(null);
     try {
-      const { blob } = await compressImage(selectedFile);
+      const { blob } = await compressImage(file);
       const formData = new FormData();
       formData.append("file", new File([blob], "image.webp", { type: "image/webp" }));
       const res = await fetch("/api/analyze", { method: "POST", body: formData });
@@ -101,13 +104,17 @@ export function UploadForm() {
         if (data.tags?.length) setTags(data.tags);
         if (data.category) setCategory(data.category);
         if (data.prompt) setPrompt(data.prompt);
+      } else if (res.status === 429) {
+        setError("AI quota exceeded — please fill in details manually");
+      } else {
+        setError("AI analysis failed — please fill in details manually");
       }
     } catch {
-      // Analysis failed — keep filename-based title, user can edit manually
+      setError("AI analysis failed — please fill in details manually");
     } finally {
       setAnalyzing(false);
     }
-  }, []);
+  }, [file, analyzing]);
 
   const handleDrop = useCallback(
     (e: React.DragEvent) => {
@@ -323,12 +330,23 @@ export function UploadForm() {
         </div>
       )}
 
-      {analyzing && (
-        <div className="flex items-center gap-2 rounded-lg bg-muted/50 px-4 py-3 text-sm text-muted-foreground">
-          <Loader2 className="h-4 w-4 animate-spin" />
-          AI analyzing image...
-        </div>
-      )}
+      <button
+        onClick={handleAnalyze}
+        disabled={analyzing}
+        className="flex w-full items-center justify-center gap-2 rounded-lg border border-border bg-muted/50 px-4 py-2.5 text-sm font-medium transition-colors hover:bg-muted disabled:opacity-50"
+      >
+        {analyzing ? (
+          <>
+            <Loader2 className="h-4 w-4 animate-spin" />
+            Analyzing...
+          </>
+        ) : (
+          <>
+            <Sparkles className="h-4 w-4" />
+            AI Auto-fill (title, tags, category)
+          </>
+        )}
+      </button>
 
       <div>
         <label className="mb-1 block text-sm font-medium">Title *</label>

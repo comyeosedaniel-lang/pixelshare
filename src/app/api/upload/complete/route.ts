@@ -27,6 +27,7 @@ export async function POST(request: NextRequest) {
     tags: tagNames,
     category,
     prompt,
+    nsfw,
     cloudinaryPublicId,
     cloudinaryUrl,
     fileName,
@@ -60,6 +61,7 @@ export async function POST(request: NextRequest) {
         height,
         sha256Hash: createHash("sha256").update(cloudinaryPublicId).digest("hex"),
         pHash: null,
+        moderationOk: !nsfw,
       })
       .returning({ id: images.id });
 

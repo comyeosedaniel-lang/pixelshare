@@ -27,7 +27,7 @@ export async function POST(request: NextRequest) {
     const bytes = await file.arrayBuffer();
     const base64 = Buffer.from(bytes).toString("base64");
 
-    const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" });
+    const model = genAI.getGenerativeModel({ model: "gemini-2.0-flash" });
 
     const result = await model.generateContent([
       {
@@ -43,6 +43,7 @@ export async function POST(request: NextRequest) {
 - "tags": An array of 3-8 relevant tags (lowercase, single words or short phrases)
 - "category": One of: ${CATEGORY_VALUES.join(", ")}
 - "prompt": Your best guess of the AI prompt that could have generated this image (max 300 chars, English)
+- "nsfw": boolean — true if this image contains ANY of: nudity, sexual content, suggestive poses, gore, extreme violence, drug use, hate symbols, or content involving minors in inappropriate contexts. Be strict.
 
 Return ONLY valid JSON, no markdown or explanation.`,
       },
@@ -58,6 +59,8 @@ Return ONLY valid JSON, no markdown or explanation.`,
     const parsed = JSON.parse(jsonMatch[0]);
 
     // Validate and sanitize
+    const nsfw = parsed.nsfw === true;
+
     const analysis = {
       title: String(parsed.title || "").slice(0, 80) || "Untitled",
       description: String(parsed.description || "").slice(0, 200),
@@ -66,14 +69,17 @@ Return ONLY valid JSON, no markdown or explanation.`,
         : [],
       category: CATEGORY_VALUES.includes(parsed.category) ? parsed.category : "other",
       prompt: String(parsed.prompt || "").slice(0, 300),
+      nsfw,
     };
 
     return NextResponse.json(analysis);
   } catch (error) {
     console.error("Gemini analysis error:", error);
+    const msg = error instanceof Error ? error.message : "";
+    const isQuota = msg.includes("429") || msg.includes("quota") || msg.includes("RATE_LIMIT");
     return NextResponse.json(
-      { error: "Image analysis failed" },
-      { status: 500 }
+      { error: isQuota ? "AI quota exceeded — fill in details manually" : "Image analysis failed", quota: isQuota },
+      { status: isQuota ? 429 : 500 }
     );
   }
 }
