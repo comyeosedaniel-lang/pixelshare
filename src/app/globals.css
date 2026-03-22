@@ -2,9 +2,8 @@
 
 @theme {
   --font-display: "Syne", ui-sans-serif, system-ui, sans-serif;
-  --color-neon: #c8ff00;
-  --color-neon-dim: rgba(200, 255, 0, 0.1);
-  --color-orange: #ff6b35;
+  --color-highlight: #6366f1;
+  --color-highlight-foreground: #ffffff;
   --color-background: #ffffff;
   --color-foreground: #0a0a0a;
   --color-muted: #f5f5f5;
@@ -33,6 +32,7 @@
     --color-accent: #262626;
     --color-accent-foreground: #fafafa;
     --color-destructive: #dc2626;
+    --color-highlight: #818cf8;
   }
 
   * {
