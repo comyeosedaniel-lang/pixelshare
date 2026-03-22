@@ -151,14 +151,35 @@ export function UploadForm() {
       // Step 1: Compress image
       setStatusText("Compressing image...");
       const { blob: compressed, width: cWidth, height: cHeight } = await compressImage(file);
-      setProgress(15);
+      setProgress(10);
 
-      // Step 2: Get Cloudinary signature from our server
+      // Step 2: AI content moderation check
+      setStatusText("Checking content policy...");
+      try {
+        const checkForm = new FormData();
+        checkForm.append("file", new File([compressed], "image.webp", { type: "image/webp" }));
+        const checkRes = await fetch("/api/analyze", { method: "POST", body: checkForm });
+        if (checkRes.ok) {
+          const checkData = await checkRes.json();
+          if (checkData.nsfw) {
+            throw new Error("This image violates our content policy and cannot be uploaded. Inappropriate content (nudity, violence, hate symbols, etc.) is strictly prohibited.");
+          }
+        }
+        // If AI check fails (quota/error), proceed — don't block upload due to AI downtime
+      } catch (modErr) {
+        if (modErr instanceof Error && modErr.message.includes("content policy")) {
+          throw modErr; // Re-throw NSFW rejection
+        }
+        // Silently continue if AI service is unavailable
+      }
+      setProgress(20);
+
+      // Step 3: Get Cloudinary signature from our server
       setStatusText("Preparing upload...");
       const sigRes = await fetch("/api/upload/presigned", { method: "POST" });
       if (!sigRes.ok) throw new Error("Failed to get upload signature");
       const { signature, timestamp, folder, cloudName, apiKey } = await sigRes.json();
-      setProgress(20);
+      setProgress(25);
 
       // Step 3: Upload compressed image to Cloudinary
       setStatusText("Uploading image...");
@@ -185,7 +206,7 @@ export function UploadForm() {
 
         xhr.upload.onprogress = (e) => {
           if (e.lengthComputable) {
-            const pct = Math.round((e.loaded / e.total) * 55) + 25;
+            const pct = Math.round((e.loaded / e.total) * 50) + 30;
             setProgress(pct);
           }
         };
