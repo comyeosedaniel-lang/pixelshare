@@ -60,11 +60,20 @@ export default function UserProfilePage({
   const loadMore = useCallback(async () => {
     if (nextOffset === null || loadingMore) return;
     setLoadingMore(true);
-    const res = await fetch(`/api/images?userId=${id}&offset=${nextOffset}`);
-    const data = await res.json();
-    setImages((prev) => [...prev, ...data.images]);
-    setNextOffset(data.nextOffset);
-    setLoadingMore(false);
+    try {
+      const res = await fetch(`/api/images?userId=${id}&offset=${nextOffset}`);
+      const data = await res.json();
+      setImages((prev) => {
+        const existingIds = new Set(prev.map((img) => img.id));
+        const newImages = data.images.filter(
+          (img: ImageCardData) => !existingIds.has(img.id)
+        );
+        return [...prev, ...newImages];
+      });
+      setNextOffset(data.nextOffset);
+    } finally {
+      setLoadingMore(false);
+    }
   }, [id, nextOffset, loadingMore]);
 
   if (loading) {

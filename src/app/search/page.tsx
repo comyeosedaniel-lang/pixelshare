@@ -47,10 +47,19 @@ function SearchContent() {
   const loadMore = useCallback(async () => {
     if (nextOffset === null || loadingMore) return;
     setLoadingMore(true);
-    const data = await fetchImages(nextOffset);
-    setImages((prev) => [...prev, ...data.images]);
-    setNextOffset(data.nextOffset);
-    setLoadingMore(false);
+    try {
+      const data = await fetchImages(nextOffset);
+      setImages((prev) => {
+        const existingIds = new Set(prev.map((img) => img.id));
+        const newImages = data.images.filter(
+          (img: ImageCardData) => !existingIds.has(img.id)
+        );
+        return [...prev, ...newImages];
+      });
+      setNextOffset(data.nextOffset);
+    } finally {
+      setLoadingMore(false);
+    }
   }, [nextOffset, loadingMore, fetchImages]);
 
   return (
