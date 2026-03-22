@@ -26,34 +26,39 @@ export function Header() {
 
   return (
     <header className="sticky top-0 z-50 border-b border-border bg-background/80 backdrop-blur-sm">
-      <div className="mx-auto flex h-16 max-w-7xl items-center gap-4 px-4">
+      <div className="mx-auto flex h-14 max-w-7xl items-center gap-4 px-4">
         {/* Logo */}
-        <Link href="/" className="flex shrink-0 items-center gap-2 text-xl font-bold">
+        <Link href="/" className="shrink-0 text-lg font-bold tracking-tight">
           {APP_NAME}
         </Link>
 
         {/* Search Bar - Desktop */}
         <form onSubmit={handleSearch} className="hidden flex-1 md:flex">
-          <div className="relative w-full max-w-xl">
-            <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+          <div className="relative w-full max-w-2xl">
+            <Search className="absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
             <input
               type="text"
-              placeholder="Search AI images..."
+              placeholder="Search images..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full rounded-lg border border-border bg-muted px-10 py-2 text-sm outline-none transition-colors placeholder:text-muted-foreground focus:border-foreground/20 focus:bg-background"
+              className="w-full rounded-full border border-border bg-muted/50 py-2 pl-10 pr-4 text-sm outline-none transition-all placeholder:text-muted-foreground focus:bg-background focus:ring-2 focus:ring-border"
             />
           </div>
         </form>
 
         {/* Actions - Desktop */}
-        <div className="hidden items-center gap-2 md:flex">
+        <div className="hidden items-center gap-1 md:flex">
+          <Link
+            href="/search"
+            className="rounded-lg px-3 py-2 text-sm text-muted-foreground transition-colors hover:text-foreground"
+          >
+            Explore
+          </Link>
           <ThemeToggle />
           <Link
             href="/upload"
-            className="flex items-center gap-2 rounded-lg bg-primary px-4 py-2 text-sm font-medium text-primary-foreground transition-opacity hover:opacity-90"
+            className="ml-1 flex items-center gap-2 rounded-lg border border-border px-4 py-2 text-sm font-medium transition-colors hover:bg-muted"
           >
-            <Upload className="h-4 w-4" />
             Upload
           </Link>
           {session?.user ? (
@@ -61,15 +66,15 @@ export function Header() {
           ) : (
             <Link
               href="/login"
-              className="rounded-lg border border-border px-4 py-2 text-sm font-medium transition-colors hover:bg-muted"
+              className="rounded-lg bg-primary px-4 py-2 text-sm font-medium text-primary-foreground transition-opacity hover:opacity-90"
             >
               Sign In
             </Link>
           )}
         </div>
 
-        {/* Mobile Menu Toggle */}
-        <div className="flex items-center gap-2 md:hidden">
+        {/* Mobile */}
+        <div className="ml-auto flex items-center gap-2 md:hidden">
           <ThemeToggle />
           <button
             onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
@@ -90,20 +95,20 @@ export function Header() {
         <div className="space-y-3 px-4 py-3">
           <form onSubmit={handleSearch}>
             <div className="relative">
-              <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+              <Search className="absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
               <input
                 type="text"
-                placeholder="Search AI images..."
+                placeholder="Search images..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full rounded-lg border border-border bg-muted px-10 py-2 text-sm outline-none placeholder:text-muted-foreground focus:border-foreground/20"
+                className="w-full rounded-full border border-border bg-muted/50 py-2 pl-10 pr-4 text-sm outline-none placeholder:text-muted-foreground focus:ring-2 focus:ring-border"
               />
             </div>
           </form>
           <div className="flex gap-2">
             <Link
               href="/upload"
-              className="flex flex-1 items-center justify-center gap-2 rounded-lg bg-primary px-4 py-2 text-sm font-medium text-primary-foreground"
+              className="flex flex-1 items-center justify-center gap-2 rounded-lg border border-border px-4 py-2 text-sm font-medium"
               onClick={() => setMobileMenuOpen(false)}
             >
               <Upload className="h-4 w-4" />
@@ -114,7 +119,7 @@ export function Header() {
             ) : (
               <Link
                 href="/login"
-                className="flex flex-1 items-center justify-center rounded-lg border border-border px-4 py-2 text-sm font-medium"
+                className="flex flex-1 items-center justify-center rounded-lg bg-primary px-4 py-2 text-sm font-medium text-primary-foreground"
                 onClick={() => setMobileMenuOpen(false)}
               >
                 Sign In

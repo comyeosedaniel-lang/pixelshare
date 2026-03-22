@@ -1,5 +1,6 @@
 "use client";
 
+import { Suspense } from "react";
 import { useSearchParams } from "next/navigation";
 import { useCallback, useEffect, useState } from "react";
 import { MasonryGrid } from "@/components/images/masonry-grid";
@@ -7,7 +8,7 @@ import { InfiniteScroll } from "@/components/images/infinite-scroll";
 import { CATEGORIES } from "@/lib/utils/constants";
 import type { ImageCardData } from "@/components/images/image-card";
 
-export default function SearchPage() {
+function SearchContent() {
   const searchParams = useSearchParams();
   const query = searchParams.get("q") || "";
 
@@ -55,22 +56,22 @@ export default function SearchPage() {
   return (
     <div className="mx-auto max-w-7xl px-4 py-8">
       {/* Header */}
-      <div className="mb-8">
+      <div className="mb-6">
         {query ? (
-          <h1 className="text-2xl font-bold">
+          <h1 className="text-2xl font-bold tracking-tight">
             Results for &ldquo;{query}&rdquo;
           </h1>
         ) : (
-          <h1 className="text-2xl font-bold">Browse Images</h1>
+          <h1 className="text-2xl font-bold tracking-tight">Explore</h1>
         )}
       </div>
 
       {/* Filters */}
-      <div className="mb-6 flex flex-wrap gap-3">
+      <div className="mb-8 flex flex-wrap items-center gap-2">
         <select
           value={category}
           onChange={(e) => setCategory(e.target.value)}
-          className="rounded-lg border border-border bg-background px-3 py-2 text-sm outline-none"
+          className="rounded-full border border-border bg-background px-4 py-2 text-sm outline-none transition-colors hover:bg-muted focus:ring-2 focus:ring-ring"
         >
           <option value="all">All Categories</option>
           {CATEGORIES.map((cat) => (
@@ -83,19 +84,29 @@ export default function SearchPage() {
         <select
           value={sort}
           onChange={(e) => setSort(e.target.value)}
-          className="rounded-lg border border-border bg-background px-3 py-2 text-sm outline-none"
+          className="rounded-full border border-border bg-background px-4 py-2 text-sm outline-none transition-colors hover:bg-muted focus:ring-2 focus:ring-ring"
         >
           <option value="newest">Newest</option>
           <option value="popular">Most Viewed</option>
           <option value="downloads">Most Downloaded</option>
         </select>
+
+        {!loading && (
+          <span className="ml-auto text-sm text-muted-foreground">
+            {images.length} image{images.length !== 1 ? "s" : ""}
+          </span>
+        )}
       </div>
 
       {/* Results */}
       {loading ? (
-        <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4">
+        <div className="columns-2 gap-5 sm:columns-3 lg:columns-4 xl:columns-5">
           {Array.from({ length: 12 }).map((_, i) => (
-            <div key={i} className="aspect-square animate-pulse rounded-lg bg-muted" />
+            <div
+              key={i}
+              className="mb-5 break-inside-avoid animate-pulse rounded-lg bg-muted"
+              style={{ height: `${200 + (i % 3) * 80}px` }}
+            />
           ))}
         </div>
       ) : (
@@ -109,5 +120,28 @@ export default function SearchPage() {
         </>
       )}
     </div>
+  );
+}
+
+export default function SearchPage() {
+  return (
+    <Suspense
+      fallback={
+        <div className="mx-auto max-w-7xl px-4 py-8">
+          <div className="mb-6 h-8 w-48 animate-pulse rounded bg-muted" />
+          <div className="columns-2 gap-5 sm:columns-3 lg:columns-4 xl:columns-5">
+            {Array.from({ length: 12 }).map((_, i) => (
+              <div
+                key={i}
+                className="mb-5 break-inside-avoid animate-pulse rounded-lg bg-muted"
+                style={{ height: `${200 + (i % 3) * 80}px` }}
+              />
+            ))}
+          </div>
+        </div>
+      }
+    >
+      <SearchContent />
+    </Suspense>
   );
 }

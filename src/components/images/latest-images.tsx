@@ -9,7 +9,7 @@ export function LatestImages() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    fetch("/api/images?limit=12&sort=newest")
+    fetch("/api/images?limit=20&sort=newest")
       .then((res) => res.json())
       .then((data) => setImages(data.images || []))
       .catch(() => {})
@@ -18,9 +18,13 @@ export function LatestImages() {
 
   if (loading) {
     return (
-      <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4">
-        {Array.from({ length: 8 }).map((_, i) => (
-          <div key={i} className="aspect-square animate-pulse rounded-lg bg-muted" />
+      <div className="columns-2 gap-5 sm:columns-3 lg:columns-4 xl:columns-5">
+        {Array.from({ length: 10 }).map((_, i) => (
+          <div
+            key={i}
+            className="mb-5 break-inside-avoid animate-pulse rounded-lg bg-muted"
+            style={{ height: `${200 + (i % 3) * 80}px` }}
+          />
         ))}
       </div>
     );

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { Suspense, useState } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import { Flag, ArrowLeft } from "lucide-react";
 import Link from "next/link";
@@ -14,7 +14,7 @@ const REASONS = [
   { value: "other", label: "Other" },
 ];
 
-export default function ReportPage() {
+function ReportForm() {
   const searchParams = useSearchParams();
   const imageId = searchParams.get("imageId") || "";
   const router = useRouter();
@@ -138,5 +138,19 @@ export default function ReportPage() {
         </button>
       </form>
     </div>
+  );
+}
+
+export default function ReportPage() {
+  return (
+    <Suspense
+      fallback={
+        <div className="flex items-center justify-center py-20">
+          <div className="h-8 w-8 animate-spin rounded-full border-2 border-muted-foreground border-t-transparent" />
+        </div>
+      }
+    >
+      <ReportForm />
+    </Suspense>
   );
 }

@@ -214,17 +214,17 @@ export function UploadForm() {
   return (
     <div className="space-y-6">
       {/* Preview */}
-      <div className="relative">
+      <div className="relative overflow-hidden rounded-xl bg-muted">
         {preview && (
           <img
             src={preview}
             alt="Preview"
-            className="max-h-64 w-full rounded-lg object-contain bg-muted"
+            className="max-h-72 w-full object-contain"
           />
         )}
         <button
           onClick={resetForm}
-          className="absolute right-2 top-2 rounded-full bg-background/80 p-1 backdrop-blur-sm transition-colors hover:bg-background"
+          className="absolute right-3 top-3 rounded-full bg-black/50 p-1.5 text-white backdrop-blur-sm transition-colors hover:bg-black/70"
         >
           <X className="h-4 w-4" />
         </button>
@@ -322,7 +322,7 @@ export function UploadForm() {
       <button
         onClick={handleUpload}
         disabled={!title.trim()}
-        className="w-full rounded-lg bg-primary px-4 py-3 text-sm font-medium text-primary-foreground transition-opacity hover:opacity-90 disabled:opacity-50"
+        className="w-full rounded-xl bg-foreground px-4 py-3 text-sm font-medium text-background transition-opacity hover:opacity-90 disabled:opacity-50"
       >
         Upload Image
       </button>
